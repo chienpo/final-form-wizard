@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Form } from 'react-final-form';
 
 import { Button } from '../components';
-import { WizardForm, BottomControlsRow, Checkbox, CheckboxLabel, Navigation } from './styled';
+import { WizardForm, BottomControlsRow, StepButton, StepLabel, Navigation } from './styled';
 import { InputFields } from './form-fields';
 import { STEPS_FIELDS } from './wizard';
 
@@ -60,7 +60,7 @@ export const WizardView = ({ onSubmit, children, initialValues }) => {
 							{fieldsState => {
 								let stepIsValid;
 
-								if (Object.values(fieldsState).some(({input, meta}) => !meta.valid)) {
+								if (Object.values(fieldsState).some(({ meta }) => !meta.valid)) {
 									stepIsValid = false;
 								} else {
 									stepIsValid = true;
@@ -70,17 +70,19 @@ export const WizardView = ({ onSubmit, children, initialValues }) => {
 
 								fillVisitedStepsSet(visitedStepsSet.add(activePage.props.label));
 
-								const invalidStep = [...validStepsMap].findIndex(([it, val]) => val === false);
+								const invalidStep = [...validStepsMap].findIndex(([, val]) => val === false);
 
 								return (
 									<Navigation>
-										{React.Children.toArray(children).map(({key, props}, index) => {
-											const checked = page === index;
-											const prevVisited = page > index;
+										{React.Children.toArray(children).map(({ key, props }, index) => {
+											const active = page === index;
+											const completed = page > index;
+											const disabled = (invalidStep !== -1 && index > invalidStep) || (index > [...visitedStepsSet].length);
+
 											const stepNumber = index + 1;
+											const visited = [...visitedStepsSet].includes(props.label);
 
-
-											const onChange = () => {
+											const onChangeStep = () => {
 												if (!isLastPage) {
 													form.submit();
 												}
@@ -91,21 +93,27 @@ export const WizardView = ({ onSubmit, children, initialValues }) => {
 											};
 
 											return (
-												<label key={key}>
-													<Checkbox
-														name={`val_${index}`}
-														type="radio"
-														onChange={onChange}
-														checked={checked}
-														prevVisited={prevVisited}
-														stepNumber={stepNumber}
-														visited={[...visitedStepsSet].includes(props.label)}
-														disabled={(invalidStep !== -1 && index > invalidStep) || ((stepNumber > [...visitedStepsSet].length + 1) && (key > validStepsMap.get(key) === false))}
-													/>
-													<CheckboxLabel>
+												<div key={key}>
+													<StepButton
+														type="button"
+														onClick={onChangeStep}
+														disabled={disabled}
+														nextAvailable={!active && !completed && !visited && !disabled}
+														completed={completed}
+														active={active}
+													>
+														{active && <strong>{stepNumber}</strong>}
+														{completed && <strong>{'->'}</strong>}
+														{!completed && !visited && disabled && stepNumber}
+														{!active && !completed && !visited && !disabled && `->${stepNumber}`}
+														{!active && !completed && visited && !disabled && '->'}
+														{!active && !completed && visited && disabled && '-x'}
+													</StepButton>
+
+													<StepLabel>
 														{props.label}
-													</CheckboxLabel>
-												</label>
+													</StepLabel>
+												</div>
 											);
 										})}
 									</Navigation>
@@ -126,6 +134,12 @@ export const WizardView = ({ onSubmit, children, initialValues }) => {
 
 WizardView.propTypes = {
 	onSubmit: PropTypes.func.isRequired,
-	children: PropTypes.node,
+	children: PropTypes.arrayOf(PropTypes.shape({
+		props: PropTypes.shape({
+			label: PropTypes.string,
+			validate: PropTypes.func,
+			values: PropTypes.arrayOf(PropTypes.string)
+		})
+	})),
 	initialValues: PropTypes.any,
 };

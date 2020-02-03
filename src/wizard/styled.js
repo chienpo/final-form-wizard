@@ -18,61 +18,47 @@ export const BottomControlsRow = styled.div`
     margin: 0 auto;
 `;
 
-export const Checkbox = styled.input`
+export const StepButton = styled.button`
     width: 40px;
     height: 40px;
+    border-radius: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
     cursor: pointer;
-    
-    &:before {
-        content: '${({ stepNumber, prevVisited, visited }) => prevVisited ? '\\2713' : `${visited ? '\\2713' : stepNumber}`}';
-        width: 100%;
-        height: 100%;
-        border-radius: 50%;
-        background: rgb(200, 200, 200);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-        color: black;
-        border: 1px solid black;
-        font-size: ${({ visited }) => visited ? '20px' : '10px'};
-    }
-    
-    &:checked {
-        &:before {
-            content: '${({ stepNumber, prevVisited }) => prevVisited ? '\\2713' : stepNumber}';
-            color: white;
-            font-size: 20px;
-            background: black;
-            border: 1px solid black;
-        }
-    }
-    
-    ${({ prevVisited }) => prevVisited && `
-        &:before {
-            color: white;
-            font-size: 20px;
-            background: black;
-            border: 1px solid black;
-        }
+    border: 1px solid;
+
+    ${({ active }) => active && `
+        color: white;
+        background: black;
+        border-color: black;
+    `};
+
+    ${({ completed }) => completed && `
+        color: white;
+        background: black;
+    `};
+
+    ${({ nextAvailable }) => nextAvailable && `
+      background: rgb(240, 240, 240);
+      color: black;
+      border-color: rgb(150, 150, 150);
     `}
-    
+
+    ${({ completed }) => completed && `
+        color: white;
+        font-size: 20px;
+        background: black;
+        border: 1px solid black;
+    `};
+
     &:disabled {
         cursor: not-allowed;
-        
-        ${({ disabled }) => disabled && `
-            &:before {
-                background: white;
-            }
-        `};
     };
 `;
 
-export const CheckboxLabel = styled.div`
+export const StepLabel = styled.div`
     text-align: center;
     padding-top: 10px;
 `;
